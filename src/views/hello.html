@@ -1,0 +1,74 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="/static/styles/custom.css" />
+    <script
+      src="https://res.cdn.office.net/teams-js/2.22.0/js/MicrosoftTeams.min.js"
+      integrity="sha384-WSG/sWulIv7rel5TnFlH8JTpxl2OxzZh9Lux2mIzBFiTRLFvMBeFv9VURu/3vQdx"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"
+      integrity="sha512-a+SUDuwNzXDvz4XrIcXHuCf089/iJAoN4lmrXJg18XnduKK6YlDHNRalv4yd1N40OKI80tFidF+rqTFKGPoWFQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="/static/scripts/teamsapp.js"></script>
+    <title>Microsoft Teams Tab</title>
+  </head>
+
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div>
+      <h1>Hello, World</h1>
+      <span>
+        <p>Your app is running</p>
+        <p id="hubState"></p>
+        <button id="login">Login</button>
+      </span>
+    </div>
+    <script type="text/javascript">
+      microsoftTeams.appInitialization.notifySuccess();
+
+      const randomArray = new Uint8Array(32);
+      window.crypto.getRandomValues(randomArray);
+      const randomBytesHex = Array.from(randomArray)
+        .map((b) => ("00" + b.toString(16)).slice(-2))
+        .join("");
+
+      // Convert random bytes to a hex string
+
+      function base64URLEncode(str) {
+        return str
+          .toString("base64")
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=/g, "");
+      }
+
+      const verifier = base64URLEncode(randomBytesHex);
+      const hash = CryptoJS.SHA256(randomBytesHex);
+      const challenge = base64URLEncode(hash.toString());
+      document.querySelector("#login").addEventListener("click", () => {
+        microsoftTeams.authentication
+          .authenticate({
+            url:
+              window.location.origin +
+              `/auth-start?oauthRedirectMethod={oauthRedirectMethod}&authId={authId}&hostRedirectUrl={hostRedirectUrl}&challenge=${challenge}`,
+            isExternal: true,
+            width: 600,
+            height: 600,
+          })
+          .then((content) => {
+            console.log("success");
+            console.log(content);
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+      });
+    </script>
+  </body>
+</html>
